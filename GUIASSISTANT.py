@@ -1,95 +1,74 @@
 #########################
-# GLOBAL VARIABLES USED 主程式區
+# GLOBAL VARIABLES USED #
 #########################
+ai_name = 'Jarvis'.lower()
+EXIT_COMMANDS = ['bye','exit','quit','shut down', 'shutdown']
 
-ai_name = 'Jarvis'.lower() # 介面最上面的名稱
-EXIT_COMMANDS = ['bye','exit','quit','shut down', 'shutdown'] # 結束詞
-
-
-ownerName = "User" # 使用者名稱 (Settings 介面)
-ownerDesignation = "Sir" # 稱呼
-ownerPhoto = "1" # 選擇照片一
-rec_email, rec_phoneno = "", "" # Email + 手機號碼
+ownerName = "Felix"
+ownerDesignation = "Sir"
+ownerPhoto = "1"
+rec_email, rec_phoneno = "", ""
 WAEMEntry = None
 
-avatarChoosen = 0 # 頭像的選擇
-choosedAvtrImage = None # 選擇圖像
+avatarChoosen = 0
+choosedAvtrImage = None
 
-botChatTextBg = "#007cc7" 
-botChatText = "white" 
+botChatTextBg = "#007cc7"
+botChatText = "white"
 userChatTextBg = "#4da8da"
 
 chatBgColor = '#12232e'
 background = '#203647'
 textColor = 'white'
 AITaskStatusLblBG = '#203647'
+KCS_IMG = 1 #0 for light, 1 for dark
+voice_id = 0 #0 for female, 1 for male
+ass_volume = 1 #max volume
+ass_voiceRate = 200 #normal voice rate
 
-KCS_IMG = 1 # 0 是 light, 1 是 dark (初始)
-voice_id = 0 # 0 是 female, 1 是 male (初始)
-ass_volume = 1 # volume (100 為初始)
-ass_voiceRate = 200 # Voice rate (200 為 Normal 初始)
-startup = 0 # 0 啟動, 1 暫停
 stage = 0 # 0: Listening, 1: Adding
-buffer = None
-####################################### IMPORTING MODULES 導入模組 ########################################### 
-""" User Created Modules 與用戶創建相關的py匯入 """
-try:
-	import normalChat # 基本問答
-	import math_function # 數學功能
-	import appControl # 程序的控制
-	import webScrapping
-	import game # 遊戲功能
-	from userHandler import UserData # 使用者
-	import timer
-	import dictionary # 字典功能
-	import ToDo # 代辦清單功能
-	import fileHandler
-	from translates import * # 和語言切換相關的
 
-except Exception as e: # 異常處理
+####################################### IMPORTING MODULES ###########################################
+""" User Created Modules """
+try:
+	import normalChat
+	import math_function
+	import appControl
+	import webScrapping
+	import game
+	from userHandler import UserData
+	import timer
+	import dictionary
+	import ToDo
+	import fileHandler
+	from multiprocessing import Process
+except Exception as e:
 	raise e
 
-""" System Modules 與系統相關的py匯入 """
+""" System Modules """
 try:
 	import os
-	import speech_recognition as sr # 語音辨識模組 (語音轉文字)
-	import pyttsx3 # 文字轉語音
-	# tkinter 視窗設計
+	import speech_recognition as sr
+	import pyttsx3
 	from tkinter import *
 	from tkinter import ttk
 	from tkinter import messagebox
 	from tkinter import colorchooser
-	from PIL import Image, ImageTk # 影像處理套件 (處理和圖片相關的)
-	from time import sleep # 時間模組 (sleep 休眠)
-	from threading import Thread # 多執行序模組平行化
-
-except Exception as e: # 異常處理
+	from PIL import Image, ImageTk
+	from time import sleep
+	from googletrans import Translator
+	from gtts import gTTS 
+	from threading import Thread
+except Exception as e:
 	print(e)
 
 if os.path.exists('userData')==False:
 	os.mkdir('userData')
-############################################ SET UP VOICE ###########################################
-try:
-	engine = pyttsx3.init()
-	voices = engine.getProperty('voices')
-	engine.setProperty('voice', voices[voice_id].id) # male
-	engine.setProperty('volume', ass_volume)
-except Exception as e:
-	print(e)
 
-t = 0 # 次數
-name = [] 
-for voice in voices:
-	t += 1
-	n1 = voice.name
-	n2 = n1.split("- ")
-	n3 = n2[1]
-	n = re.sub(u"\\(.*?\\)", "", n3)
-	name.append(n)
-########################################## BOOT UP WINDOW 啟動視窗 ###########################################
+########################################## BOOT UP WINDOW ###########################################
 def ChangeSettings(write=False):
 	import pickle
-	global background, textColor, chatBgColor, voice_id, ass_volume, ass_voiceRate, AITaskStatusLblBG, startup, KCS_IMG, botChatTextBg, botChatText, userChatTextBg
+	global background, textColor, chatBgColor, voice_id, ass_volume, ass_voiceRate, AITaskStatusLblBG, KCS_IMG, botChatTextBg, botChatText, userChatTextBg
 	setting = {'background': background,
 				'textColor': textColor,
 				'chatBgColor': chatBgColor,
@@ -100,8 +79,7 @@ def ChangeSettings(write=False):
 				'userChatTextBg': userChatTextBg,
 				'voice_id': voice_id,
 				'ass_volume': ass_volume,
-				'ass_voiceRate': ass_voiceRate,
-				'startup' : startup
+				'ass_voiceRate': ass_voiceRate
 			}
 	if write:
 		with open('userData/settings.pck', 'wb') as file:
@@ -121,7 +99,6 @@ def ChangeSettings(write=False):
 			voice_id = loadSettings['voice_id']
 			ass_volume = loadSettings['ass_volume']
 			ass_voiceRate = loadSettings['ass_voiceRate']
-			startup = loadSettings['startup']
 	except Exception as e:
 		pass
 
@@ -130,7 +107,7 @@ if os.path.exists('userData/settings.pck')==False:
 	
 def getChatColor():
 	global chatBgColor
-	#chatBgColor = myColor[1]
+	chatBgColor = myColor[1]
 	colorbar['bg'] = chatBgColor
 	chat_frame['bg'] = chatBgColor
 	root1['bg'] = chatBgColor
@@ -158,8 +135,8 @@ def changeTheme():
 
 	root['bg'], root2['bg'] = background, background
 	settingsFrame['bg'] = background
-	settingsLbl['fg'], userPhoto['fg'], userName['fg'], assLbl['fg'], voiceRateLbl['fg'], volumeLbl['fg'], themeLbl['fg'], chooseChatLbl['fg'],  startupbl['fg'] = textColor, textColor, textColor, textColor, textColor, textColor, textColor, textColor, textColor
-	settingsLbl['bg'], userPhoto['bg'], userName['bg'], assLbl['bg'], voiceRateLbl['bg'], volumeLbl['bg'], themeLbl['bg'], chooseChatLbl['bg'],  startupbl['bg'] = background, background, background, background, background, background, background, background, background
+	settingsLbl['fg'], userPhoto['fg'], userName['fg'], assLbl['fg'], voiceRateLbl['fg'], volumeLbl['fg'], themeLbl['fg'], chooseChatLbl['fg'] = textColor, textColor, textColor, textColor, textColor, textColor, textColor, textColor
+	settingsLbl['bg'], userPhoto['bg'], userName['bg'], assLbl['bg'], voiceRateLbl['bg'], volumeLbl['bg'], themeLbl['bg'], chooseChatLbl['bg'] = background, background, background, background, background, background, background, background
 	s.configure('Wild.TRadiobutton', background=background, foreground=textColor)
 	volumeBar['bg'], volumeBar['fg'], volumeBar['highlightbackground'] = background, textColor, background
 	chat_frame['bg'], root1['bg'] = chatBgColor, chatBgColor
@@ -168,8 +145,8 @@ def changeTheme():
 
 def changeVoice(e):
 	global voice_id
-	voice_id = 0
-	voice_id = name.index(assVoiceOption.get(),0,t)
+	voice_id=0
+	if assVoiceOption.get()=='Female': voice_id=1
 	engine.setProperty('voice', voices[voice_id].id)
 	ChangeSettings(True)
 
@@ -187,36 +164,24 @@ def changeVoiceRate(e):
 	elif temp=='Fast': ass_voiceRate = 250
 	elif temp=='Very Fast': ass_voiceRate = 300
 	else: ass_voiceRate = 200
-	#print(ass_voiceRate)
+	print(ass_voiceRate)
 	engine.setProperty('rate', ass_voiceRate)
 	ChangeSettings(True)
 
-def startupTheme():
-	global startup
-	if startupValue.get() == 0: 
-		startup = 0
-		engine.setProperty('start', startup)
-		Button(settingsFrame, image=cimg, relief=FLAT, command=getChatColor).place(x=261, y=180)
-		backBtn = Button(settingsFrame, text='   Back   ', bd=0, font=('Arial 12'), fg='white', bg='#14A769', relief=FLAT, command=setChatModeToSpeach)
-		backBtn.place(x=5, y=275)
-	if startupValue.get() == 1: 
-		startup = 1
-		engine.setProperty('pause', startup)
-		raise_frame(root2)
-		clearChatScreen()
-		Button(settingsFrame, image=cimg, relief=FLAT, command=getChatColor).place(x=261, y=180)
-		backBtn = Button(settingsFrame, text='   Back   ', bd=0, font=('Arial 12'), fg='white', bg='#14A769', relief=FLAT, command=None)
-		backBtn.place(x=5, y=275)
-	ChangeSettings(True)
 ChangeSettings()
+
+############################################ SET UP VOICE ###########################################
+try:
+	engine = pyttsx3.init()
+	voices = engine.getProperty('voices')
+	engine.setProperty('voice', voices[voice_id].id) #male
+	engine.setProperty('volume', ass_volume)
+except Exception as e:
+	print(e)
+
+
 ####################################### SET UP TEXT TO SPEECH #######################################
 def speak(text, display=False, icon=False):
-	from googletrans import Translator # Google 翻譯 裡面有的語言：LANGUAGES
-	translator = Translator() # 創造翻譯物件
-	lan = googletrans(assVoiceOption.get())
-	if text != '':
-		text = translator.translate(text,lan).text
-	text = trans(text)
 	AITaskStatusLbl['text'] = 'Speaking...'
 	if icon: Label(chat_frame, image=botIcon, bg=chatBgColor).pack(anchor='w',pady=0)
 	if display: attachTOframe(text, True)
@@ -226,15 +191,12 @@ def speak(text, display=False, icon=False):
 		engine.runAndWait()
 	except:
 		print("Try not to type more...")
+
 ####################################### SET UP SPEECH TO TEXT #######################################
 def record(clearChat=True, iconDisplay=True):
-	from googletrans import Translator # Google 翻譯 裡面有的語言：LANGUAGES
-	translator = Translator() # 創造翻譯物件
-	lan = googletrans(assVoiceOption.get())
 	print('\nListening...')
 	AITaskStatusLbl['text'] = 'Listening...'
 	r = sr.Recognizer()
-
 	r.dynamic_energy_threshold = False
 	r.energy_threshold = 4000
 	with sr.Microphone() as source:
@@ -242,37 +204,33 @@ def record(clearChat=True, iconDisplay=True):
 		audio = r.listen(source)
 		said = ""
 		try:
-			if chatMode == 1:
-				return ''
-			else:
-				AITaskStatusLbl['text'] = 'Processing...'
-				said = r.recognize_google(audio, language=lan) # 選擇辨識的語言
-				print(f"\nUser said: {said}")
-				if clearChat:
-					clearChatScreen()
-				if iconDisplay: Label(chat_frame, image=userIcon, bg=chatBgColor).pack(anchor='e',pady=0)
-				attachTOframe(said)
+			AITaskStatusLbl['text'] = 'Processing...'
+			said = r.recognize_google(audio)
+			print(f"\nUser said: {said}")
+			if clearChat:
+				clearChatScreen()
+			if iconDisplay: Label(chat_frame, image=userIcon, bg=chatBgColor).pack(anchor='e',pady=0)
+			attachTOframe(said)
 		except Exception as e:
 			print(e)
 			# speak("I didn't get it, Say that again please...")
 			if "connection failed" in str(e):
 				speak("Your System is Offline...", True, True)
 			return 'None'
-		
-	return trans_e(translator.translate(said,'en').text).lower()
+	return said.lower()
+
+
 
 def voiceMedium():
-	global chatMode, speachThread, startup
+	global chatMode, speachThread
 	while True:
 		if chatMode != 0:
+			print(chatMode)
 			print("stopping speach thread inside function")
 			speachThread = None
 			return
-		
-		startupTheme()
 		query = record()
 		if query == 'None': continue
-
 		if isContain(query, EXIT_COMMANDS):
 			speak("Shutting down the System. Good Bye "+ownerDesignation+"!", True, True)
 			break
@@ -280,26 +238,15 @@ def voiceMedium():
 	appControl.Win_Opt('close')
 
 def keyboardInput(e):
-	from googletrans import Translator # Google 翻譯 裡面有的語言：LANGUAGES
-	translator = Translator() # 創造翻譯物件
-	global startup
 	user_input = UserField.get().lower()
-	if user_input != "":
+	if user_input!="":
 		clearChatScreen()
-		user_input_en = trans_e(translator.translate(user_input,'en').text)
-		#print(user_input_en)
-
-		if isContain(user_input_en, 'pause'):
-			startup = 1
-			engine.setProperty('pause', startup)
-			startupValue.set(1)
-
-		if isContain(user_input_en, EXIT_COMMANDS):
+		if isContain(user_input, EXIT_COMMANDS):
 			speak("Shutting down the System. Good Bye "+ownerDesignation+"!", True, True)
 		else:
 			Label(chat_frame, image=userIcon, bg=chatBgColor).pack(anchor='e',pady=0)
 			attachTOframe(user_input.capitalize())
-			Thread(target=main, args=(user_input_en,)).start() #Every time you type, it starts a new Thread, Thread can't easily communicate with eachother, so you neeed to store a stage, the listening stage, an Creating a List stage,
+			Thread(target=main, args=(user_input,)).start() #Every time you type, it starts a new Thread, Thread can't easily communicate with eachother, so you neeed to store a stage, the listening stage, an Creating a List stage, 
 		UserField.delete(0, END)
 
 ###################################### TASK/COMMAND HANDLER #########################################
@@ -330,19 +277,18 @@ def main(text):
 			return
 		elif stage == 4:
 			sentence = buffer
-			language = translate(text)
-			print(language)
+			language = text
 			result = normalChat.lang_translate(sentence, language)
-			print(result)
 			if result=="None": speak("This language doesn't exists")
 			else:
 					speak(f"In {language.capitalize()} you would say:", True)
-					attachTOframe(result.text, True)
-					engine.say(result.pronunciation)
-					engine.runAndWait()
+					if language=="english":
+							attachTOframe(result.text, True)
+							speak(result.pronunciation)
+					else: speak(result.text, True)
 			stage = 0
-			return		
-
+			return
+		
 		if "project" in text:
 			if isContain(text, ['make', 'create']):
 				speak("What do you want to give the project name ?", True, True)
@@ -566,18 +512,26 @@ def main(text):
 			speak('Your name is, ' + ownerName, True, True)
 			return
 
+		if isContain(text, ['voice']):
+			global voice_id
+			try:
+				if 'female' in text: voice_id = 0
+				elif 'male' in text: voice_id = 1
+				else:
+					if voice_id==0: voice_id=1
+					else: voice_id=0
+				engine.setProperty('voice', voices[voice_id].id)
+				ChangeSettings(True)
+				speak("Hello "+ownerDesignation+", I have changed my voice. How may I help you?", True, True)
+				assVoiceOption.current(voice_id)
+			except Exception as e:
+				print(e)
+			return
+
 		if isContain(text, ['morning','evening','noon']) and 'good' in text:
 			speak(normalChat.chat("good"), True, True)
 			return
 		
-		if isContain(text, ['pause']):
-			startup = 1
-			engine.setProperty('pause', startup)
-			startupValue.set(1)
-			raise_frame(root2)
-			clearChatScreen()
-			return
-
 		result = normalChat.reply(text)
 		if result != "None": speak(result, True, True)
 		else:
@@ -585,6 +539,7 @@ def main(text):
 			#speak("Here's what I found on the web... ", True, True)
 			#webScrapping.googleSearch(text) #uncomment this if you want to show the result on web, means if nothing found
 		
+
 ##################################### DELETE USER ACCOUNT #########################################
 def deleteUserData():
 	result = messagebox.askquestion('Alert', 'Are you sure you want to exit ?')
@@ -668,7 +623,7 @@ def sendWAEM():
 	data = WAEMEntry.get()
 	rec_email, rec_phoneno = data, data
 	WAEMEntry.delete(0, END)
-	appControl.Win_Opt('close') # 關閉程序
+	appControl.Win_Opt('close')
 def send(e):
 	sendWAEM()
 
@@ -705,27 +660,20 @@ def getChatColor():
 	root1['bg'] = chatBgColor
 	ChangeSettings(True)
 
-chatMode = 0
+chatMode = 1
 def setChatMode(newChatMode):
 	global chatMode
 	chatMode = newChatMode
 	if chatMode == 1:
-		#print("Setting chatmode to 1")
+		print("Setting chatmode to 1")
 		VoiceModeFrame.pack_forget()
 		TextModeFrame.pack(fill=BOTH)
 		UserField.focus()
-	elif chatMode == 2:
-		#print("Setting chatmode to 2")
-		VoiceModeFrame.pack_forget()
-		TextModeFrame.pack(fill=BOTH)
-		raise_frame(root2)
-		clearChatScreen()
 	elif chatMode == 0:
-		#print("Setting chatmode to 0")
+		print("Setting chatmode to 0")
 		startSpeachThread()
 		TextModeFrame.pack_forget()
 		VoiceModeFrame.pack(fill=BOTH)
-		raise_frame(root1)
 		root.focus()
 
 def setChatModeToSpeach():
@@ -734,8 +682,6 @@ def setChatModeToSpeach():
 def setChatModeToText():
 	setChatMode(1)
 
-def setChatModeToSettings():
-	setChatMode(2)
 #####################################  MAIN GUI ####################################################
 
 #### SPLASH/LOADING SCREEN ####
@@ -751,7 +697,7 @@ def startSpeachThread():
 		speachThread = Thread(target=voiceMedium, args=())
 		speachThread.start()
 
-#print("Process: ", __name__)
+print("Process: ", __name__)
 
 if __name__ == '__main__':
 	splash_root = Tk()
@@ -822,7 +768,7 @@ if __name__ == '__main__':
 	sphDark = sphDark.subsample(2,2)
 	if KCS_IMG==1: sphimage=sphDark
 	else: sphimage=sphLight
-	settingBtn = Button(VoiceModeFrame,image=sphimage,height=30,width=30, bg='#dfdfdf',borderwidth=0,activebackground="#dfdfdf",command=setChatModeToSettings)
+	settingBtn = Button(VoiceModeFrame,image=sphimage,height=30,width=30, bg='#dfdfdf',borderwidth=0,activebackground="#dfdfdf",command=lambda: raise_frame(root2))
 	settingBtn.place(relx=1.0, y=30,x=-20, anchor="ne")	
 	
 	#Keyboard Button
@@ -875,14 +821,13 @@ if __name__ == '__main__':
 	userName.pack()
 
 	#Settings Frame
-	settingsFrame = Frame(root2, width=350, height=350, bg=background)
+	settingsFrame = Frame(root2, width=300, height=300, bg=background)
 	settingsFrame.pack(pady=20)
 
-	assLbl = Label(settingsFrame, text='Language', font=('Arial', 13), fg=textColor, bg=background)
+	assLbl = Label(settingsFrame, text='Assistant Voice', font=('Arial', 13), fg=textColor, bg=background)
 	assLbl.place(x=0, y=20)
 	n = StringVar()
-	voices = engine.getProperty('voices')
-	assVoiceOption = ttk.Combobox(settingsFrame, values=(name), font=('Arial', 13), width=13, textvariable=n)
+	assVoiceOption = ttk.Combobox(settingsFrame, values=('Male', 'Female'), font=('Arial', 13), width=13, textvariable=n)
 	assVoiceOption.current(voice_id)
 	assVoiceOption.place(x=150, y=20)
 	assVoiceOption.bind('<<ComboboxSelected>>', changeVoice)
@@ -902,17 +847,7 @@ if __name__ == '__main__':
 	volumeBar.set(int(ass_volume*100))
 	volumeBar.place(x=150, y=85)
 
-	startupbl = Label(settingsFrame, text='Start up', font=('Arial', 13), fg=textColor, bg=background)
-	startupbl.place(x=0,y=225)
-	startupValue = IntVar()
-	s1 = ttk.Style()
-	s1.configure('Wild.TRadiobutton', font=('Arial Bold', 10), background=background, foreground=textColor, focuscolor=s1.configure(".")["background"])
-	startBtn = ttk.Radiobutton(settingsFrame, text='Start', value=0, variable=startupValue, style='Wild.TRadiobutton', command=startupTheme, takefocus=False)
-	startBtn.place(x=150,y=225)
-	pauseBtn = ttk.Radiobutton(settingsFrame, text='Pause', value=1, variable=startupValue, style='Wild.TRadiobutton', command=startupTheme, takefocus=False)
-	pauseBtn.place(x=230,y=225)
-	startupValue.set(1)
-	if startup == 0: startupValue.set(0)
+
 
 	themeLbl = Label(settingsFrame, text='Theme', font=('Arial', 13), fg=textColor, bg=background)
 	themeLbl.place(x=0,y=143)
@@ -926,6 +861,7 @@ if __name__ == '__main__':
 	themeValue.set(1)
 	if KCS_IMG==0: themeValue.set(2)
 
+
 	chooseChatLbl = Label(settingsFrame, text='Chat Background', font=('Arial', 13), fg=textColor, bg=background)
 	chooseChatLbl.place(x=0,y=180)
 	cimg = PhotoImage(file = "extrafiles/images/colorchooser.png")
@@ -934,10 +870,11 @@ if __name__ == '__main__':
 	colorbar.place(x=150, y=180)
 	if KCS_IMG==0: colorbar['bg'] = '#E8EBEF'
 	Button(settingsFrame, image=cimg, relief=FLAT, command=getChatColor).place(x=261, y=180)
-	backBtn = Button(settingsFrame, text='   Back   ', bd=0, font=('Arial 12'), fg='white', bg='#14A769', relief=FLAT, command=setChatModeToSpeach)
+
+	backBtn = Button(settingsFrame, text='   Back   ', bd=0, font=('Arial 12'), fg='white', bg='#14A769', relief=FLAT, command=lambda:raise_frame(root1))
 	clearFaceBtn = Button(settingsFrame, text='   Close the ChatBot   ', bd=0, font=('Arial 12'), fg='white', bg='#14A769', relief=FLAT, command=deleteUserData)
-	backBtn.place(x=5, y=275)
-	clearFaceBtn.place(x=150, y=275)
+	backBtn.place(x=5, y=250)
+	clearFaceBtn.place(x=120, y=250)
 
 	try:
 		# pass
