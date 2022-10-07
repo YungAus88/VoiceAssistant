@@ -3,7 +3,7 @@ import os
 USER_NAME = getpass.getuser() # a0919
 
 
-def add_to_startup(file_path="C:\\Users\\a0919\\Desktop\\大學專題\\Voice Assistant"):
+def add_to_startup():
     if file_path == "":
         file_path = os.path.dirname(os.path.realpath(__file__)) # 獲取現在位置
     bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME

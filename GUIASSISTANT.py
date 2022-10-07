@@ -78,7 +78,7 @@ except Exception as e:
 	print(e)
 
 t = 0 # 次數
-name = [] 
+name = []
 for voice in voices:
 	t += 1
 	n1 = voice.name
@@ -169,7 +169,8 @@ def changeTheme():
 def changeVoice(e):
 	global voice_id
 	voice_id = 0
-	voice_id = name.index(assVoiceOption.get(),0,t)
+	if voice_id < t:
+		voice_id = name.index(assVoiceOption.get(),0,t)
 	engine.setProperty('voice', voices[voice_id].id)
 	ChangeSettings(True)
 
