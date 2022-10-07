@@ -10,4 +10,4 @@ beautifulsoup4
 youtube_search
 wmi
 geopy
-googletrans
+googletrans==4.0.0-rc1
