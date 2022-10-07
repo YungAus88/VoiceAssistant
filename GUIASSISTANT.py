@@ -171,6 +171,8 @@ def changeVoice(e):
 	voice_id = 0
 	if voice_id < t:
 		voice_id = name.index(assVoiceOption.get(),0,t)
+	else:
+		voice_id = voice_id
 	engine.setProperty('voice', voices[voice_id].id)
 	ChangeSettings(True)
 
