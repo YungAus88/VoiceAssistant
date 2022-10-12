@@ -437,18 +437,6 @@ def main(text):
 			Thread(target=timer.startTimer, args=(text,)).start()
 			speak('Ok, Timer Started!', True, True)
 			return
-	
-		if 'whatsapp' in text:
-			speak("Sure "+ownerDesignation+"...", True, True)
-			speak('Whom do you want to send the message?', True)
-			WAEMPOPUP("WhatsApp", "Phone Number")
-			attachTOframe(rec_phoneno)
-			speak('What is the message?', True)
-			message = record(False, False)
-			Thread(target=webScrapping.sendWhatsapp, args=(rec_phoneno, message,)).start()
-			speak("Message is on the way. Do not move away from the screen.")
-			attachTOframe("Message Sent", True)
-			return
 
 		if 'email' in text:
 			speak('Whom do you want to send the email?', True, True)
