@@ -23,7 +23,7 @@ def trans_e(word): # 重複搜尋
 def  googletrans(word):
     text = word
     dic = {
-        "Chinese ":"zh-tw",
+        "Chinese ":"zh-TW",
         "Japanese":"ja",
         "Korean":"ko",
         "English ":"en",

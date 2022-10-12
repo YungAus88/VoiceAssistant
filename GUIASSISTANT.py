@@ -45,6 +45,7 @@ try:
 	import ToDo # 代辦清單功能
 	import fileHandler
 	from translates import * # 和語言切換相關的
+	from newspaper import article
 
 except Exception as e: # 異常處理
 	raise e
@@ -169,10 +170,7 @@ def changeTheme():
 def changeVoice(e):
 	global voice_id
 	voice_id = 0
-	if voice_id < t:
-		voice_id = name.index(assVoiceOption.get(),0,t)
-	else:
-		voice_id = voice_id
+	voice_id = name.index(assVoiceOption.get(),0,t)
 	engine.setProperty('voice', voices[voice_id].id)
 	ChangeSettings(True)
 
@@ -261,9 +259,8 @@ def record(clearChat=True, iconDisplay=True):
 			if "connection failed" in str(e):
 				speak("Your System is Offline...", True, True)
 			return 'None'
-		
+	print(trans_e(translator.translate(said,'en').text).lower())	
 	return trans_e(translator.translate(said,'en').text).lower()
-
 def voiceMedium():
 	global chatMode, speachThread, startup
 	while True:
@@ -289,8 +286,9 @@ def keyboardInput(e):
 	user_input = UserField.get().lower()
 	if user_input != "":
 		clearChatScreen()
+		print(user_input)
 		user_input_en = trans_e(translator.translate(user_input,'en').text)
-		#print(user_input_en)
+		print(user_input_en)
 
 		if isContain(user_input_en, 'pause'):
 			startup = 1
@@ -344,7 +342,44 @@ def main(text):
 					engine.say(result.pronunciation)
 					engine.runAndWait()
 			stage = 0
-			return		
+			return
+		elif stage == 5: 
+			if isContain(text, ["no","don't"]):
+				speak("No Problem "+ownerDesignation, True)
+			else:
+				speak("Ok "+ownerDesignation+", Opening browser...", True)
+				webScrapping.openWebsite('https://www.taiwannews.com.tw/en/index')
+				speak("You can now read the full news from this website.")
+			stage = 0
+			return
+		elif stage == 6:
+			buffer = text
+			speak("Ok "+ownerDesignation+", Where you want to go?", True)
+			stage = 7
+			return
+		elif stage == 7:
+			startingPoint = buffer
+			destinationPoint = text
+			speak("Ok "+ownerDesignation+", Getting Directions...", True)
+			try:
+				distance = webScrapping.giveDirections(startingPoint, destinationPoint)
+				speak('You have to cover a distance of '+ distance, True)
+			except:
+				speak("I think location is not proper, Try Again!")
+			stage = 0
+			return
+		elif stage == 8:
+			buffer = text
+			speak('What message you want to send ?', True)
+			stage = 9
+			return
+		elif stage == 9:
+			message = text
+			subject = buffer
+			Thread(target=webScrapping.email, args=(rec_email,message,subject,) ).start()
+			speak('Email has been Sent', True)
+			return
+			
 
 		if "project" in text:
 			if isContain(text, ['make', 'create']):
@@ -420,11 +455,7 @@ def main(text):
 			WAEMPOPUP("Email", "E-mail Address")
 			attachTOframe(rec_email)
 			speak('What is the Subject?', True)
-			subject = record(False, False)
-			speak('What message you want to send ?', True)
-			message = record(False, False)
-			Thread(target=webScrapping.email, args=(rec_email,message,subject,) ).start()
-			speak('Email has been Sent', True)
+			stage = 8
 			return
 
 		if isContain(text, ['covid','virus']):
@@ -456,15 +487,8 @@ def main(text):
 		if isContain(text, ['map', 'direction']):
 			if "direction" in text:
 				speak('What is your starting location?', True, True)
-				startingPoint = record(False, False)
-				speak("Ok "+ownerDesignation+", Where you want to go?", True)
-				destinationPoint = record(False, False)
-				speak("Ok "+ownerDesignation+", Getting Directions...", True)
-				try:
-					distance = webScrapping.giveDirections(startingPoint, destinationPoint)
-					speak('You have to cover a distance of '+ distance, True)
-				except:
-					speak("I think location is not proper, Try Again!")
+				stage = 6
+				return
 			else:
 				webScrapping.maps(text)
 				speak('Here you go...', True, True)
@@ -487,13 +511,7 @@ def main(text):
 			headlines,headlineLinks = webScrapping.latestNews(2)
 			for head in headlines: speak(head, True)
 			speak('Do you want to read the full news?', True)
-			text = record(False, False)
-			if isContain(text, ["no","don't"]):
-				speak("No Problem "+ownerDesignation, True)
-			else:
-				speak("Ok "+ownerDesignation+", Opening browser...", True)
-				webScrapping.openWebsite('https://indianexpress.com/latest-news/')
-				speak("You can now read the full news from this website.")
+			stage = 5
 			return
 
 		if isContain(text, ['weather']):
@@ -884,7 +902,7 @@ if __name__ == '__main__':
 	assLbl = Label(settingsFrame, text='Language', font=('Arial', 13), fg=textColor, bg=background)
 	assLbl.place(x=0, y=20)
 	n = StringVar()
-	voices = engine.getProperty('voices')
+
 	assVoiceOption = ttk.Combobox(settingsFrame, values=(name), font=('Arial', 13), width=13, textvariable=n)
 	assVoiceOption.current(voice_id)
 	assVoiceOption.place(x=150, y=20)

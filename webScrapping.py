@@ -8,6 +8,7 @@ import urllib.request
 import os
 from geopy.geocoders import Nominatim
 from geopy.distance import great_circle
+from newspaper import article
 
 class COVID:
 	def __init__(self):
@@ -169,8 +170,8 @@ def covid(query):
 	else:
 		return "Total Cases are: " + c.totalCases(india_bool)
 
-def latestNews(news=5):
-	URL = 'https://indianexpress.com/latest-news/'
+def latestNews(news_count=5):
+	URL = 'https://www.taiwannews.com.tw/en/index'
 	result = requests.get(URL)
 	src = result.content
 
@@ -179,16 +180,16 @@ def latestNews(news=5):
 	headlineLinks = []
 	headlines = []
 
-	divs = soup.find_all('div', {'class':'title'})
+	headers = soup.find_all('header', {'class': 'entry-header'})
 
 	count=0
-	for div in divs:
+	for header in headers:
 		count += 1
-		if count>news:
+		if count > news_count:
 			break
-		a_tag = div.find('a')
+		a_tag = header.find('a')
 		headlineLinks.append(a_tag.attrs['href'])
-		headlines.append(a_tag.text)
+		headlines.append(a_tag.find('h3').text)
 
 	return headlines,headlineLinks
 
