@@ -1,8 +1,10 @@
+import getpass
 import subprocess
 import wmi
 import os
 import sys
 import webbrowser
+USER_NAME = getpass.getuser()
 
 if os.path.exists('Files and Document') == False:
 	os.mkdir('Files and Document')
@@ -15,19 +17,19 @@ def isContain(text, list):
 	return False
 
 def createFile(text):
-	appLocation = "C:\\Program Files\\Sublime Text 3\\sublime_text.exe"
+	appLocation = "C:\\Users\%s\AppData\Local\Programs\Microsoft VS Code\Code.exe" % USER_NAME  
 	
 	if isContain(text, ["ppt","power point","powerpoint"]):
 		file_name = "sample_file.ppt"
-		appLocation = "C:\\Program Files (x86)\\Microsoft Office\\Office15\\POWERPNT.exe"
+		appLocation = "C:\\Program Files\\Microsoft Office\\Office16\\POWERPNT.exe"
 
 	elif isContain(text, ['excel','spreadsheet']):
 		file_name = "sample_file.xsl"
-		appLocation = "C:\\Program Files (x86)\\Microsoft Office\\Office15\\EXCEL.EXE"
+		appLocation = "C:\\Program Files\\Microsoft Office\\Office16\\EXCEL.EXE"
 
 	elif isContain(text, ['word','document']):
 		file_name = "sample_file.docx"
-		appLocation = "C:\\Program Files (x86)\\Microsoft Office\\Office15\\WINWORD.EXE"
+		appLocation = "C:\\Program Files\\Microsoft Office\\Office16\\WINWORD.EXE"
 
 	elif isContain(text, ["text","simple","normal"]): file_name = "sample_file.txt"
 	elif "python" in text: file_name = "sample_file.py"
@@ -50,7 +52,7 @@ def CreateHTMLProject(project_name='Sample'):
 		webbrowser.open(os.getcwd() + '/' + path + project_name + "\\index.html")
 		return 'There is a same project which is already created, look at this...'
 	else:
-	    os.mkdir(path + project_name)
+		os.mkdir(path + project_name)
 
 	os.mkdir(path+project_name+ '/images')
 	os.mkdir(path+project_name+ '/videos')
@@ -73,7 +75,7 @@ def CreateHTMLProject(project_name='Sample'):
 	jsFile.write(jsContent)
 	jsFile.close()
 
-	appLocation = "C:\\Program Files\\Sublime Text 3\\sublime_text.exe"
+	appLocation = "C:\\Users\%s\AppData\Local\Programs\Microsoft VS Code\Code.exe" % USER_NAME 
 	# subprocess.Popen([appLocation, path + project_name])
 	subprocess.Popen([appLocation, path + project_name + "/index.html"])
 	subprocess.Popen([appLocation, path + project_name + "/style.css"])

@@ -7,7 +7,7 @@ EXIT_COMMANDS = ['bye','exit','quit','shut down', 'shutdown'] # 結束詞
 
 
 ownerName = "User" # 使用者名稱 (Settings 介面)
-ownerDesignation = "Sir" # 稱呼
+ownerDesignation = "Felix" # 稱呼
 ownerPhoto = "1" # 選擇照片一
 rec_email, rec_phoneno = "", "" # Email + 手機號碼
 WAEMEntry = None
@@ -379,6 +379,21 @@ def main(text):
 			Thread(target=webScrapping.email, args=(rec_email,message,subject,) ).start()
 			speak('Email has been Sent', True)
 			return
+		elif stage == 10:
+			buffer = text
+			if text=="None":
+				speak("Didn't understand what you say?", True, True)
+				return
+			if 'online' in text:
+				speak("Ok "+ownerDesignation+", Let's play some online games", True, True)
+				webScrapping.openWebsite('https://www.agame.com/games/mini-games/')
+				return
+			if isContain(text, ["don't", "no", "cancel", "back", "never"]):
+				speak("No Problem "+ownerDesignation+", We'll play next time.", True, True)
+			else:
+				speak("Ok "+ownerDesignation+", Let's Play " + text, True, True)
+				os.system(f"python -c \"import game; game.play('{text}')\"")
+			return
 			
 
 		if "project" in text:
@@ -542,19 +557,7 @@ def main(text):
 		if isContain(text, ['game']):
 			speak("Which game do you want to play?", True, True)
 			attachTOframe(game.showGames(), True)
-			text = record(False)
-			if text=="None":
-				speak("Didn't understand what you say?", True, True)
-				return
-			if 'online' in text:
-				speak("Ok "+ownerDesignation+", Let's play some online games", True, True)
-				webScrapping.openWebsite('https://www.agame.com/games/mini-games/')
-				return
-			if isContain(text, ["don't", "no", "cancel", "back", "never"]):
-				speak("No Problem "+ownerDesignation+", We'll play next time.", True, True)
-			else:
-				speak("Ok "+ownerDesignation+", Let's Play " + text, True, True)
-				os.system(f"python -c \"import game; game.play('{text}')\"")
+			stage = 10
 			return
 
 		if isContain(text, ['coin','dice','die']):
