@@ -7,6 +7,16 @@ import speech_recognition as sr
 import pyttsx3
 import time
 from pynput.keyboard import Key, Controller
+from userHandler import UserData # 使用者
+
+try:
+	with open('userData/settings.pck', 'rb') as file:
+		import pickle
+		loadSettings = pickle.load(file)
+		voice_id = loadSettings['voice_id']
+
+except Exception as e:
+	pass
 
 def closeWindow():
 	keyboard = Controller()
@@ -18,7 +28,8 @@ def closeWindow():
 try:
 	engine = pyttsx3.init()
 	voices = engine.getProperty('voices')
-	engine.setProperty('voice', voices[1].id) #male
+	engine.setProperty('voice', voices[voice_id].id) #male
+	print(voice_id)
 	engine.setProperty('volume', 1)
 except Exception as e:
 	print(e)
