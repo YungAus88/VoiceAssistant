@@ -107,9 +107,9 @@ class RockPaperScissor:
 		if self.playerScore == self.botScore:
 			result = "The match is draw !\n"
 		elif self.playerScore > self.botScore:
-			result = "You won the match Sir! Well Done !\n"
+			result = "You won the match! Well Done !\n"
 		else:
-			result = "You lose the match Sir! Haha!\n"
+			result = "You lose the match! Haha!\n"
 		for el in root.winfo_children():
 			el.destroy()
 		if 'won' in result:
@@ -223,4 +223,3 @@ def play(gameName):
 
 def showGames():
 	return "1. Rock Paper Scissor\n2. Online Games"
-	

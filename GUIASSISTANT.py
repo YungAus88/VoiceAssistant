@@ -56,6 +56,7 @@ try:
 	import speech_recognition as sr # 語音辨識模組 (語音轉文字)
 	import pyttsx3 # 文字轉語音
 	# tkinter 視窗設計
+	import playsound
 	from tkinter import *
 	from tkinter import ttk
 	from tkinter import messagebox
@@ -393,6 +394,7 @@ def main(text):
 			else:
 				speak("Ok "+ownerDesignation+", Let's Play " + text, True, True)
 				os.system(f"python -c \"import game; game.play('{text}')\"")
+			stage = 0
 			return
 			
 
@@ -476,7 +478,7 @@ def main(text):
 			try:
 				speak(webScrapping.youtube(text), True)
 			except Exception as e:
-				speak("Desired Result Not Found", True)
+				speak("Video Result Not Found", True)
 			return
 
 		if isContain(text, ['search', 'image']):
@@ -531,10 +533,6 @@ def main(text):
 
 		if isContain(text, ['window','close that']):
 			appControl.Win_Opt(text)
-			return
-
-		if isContain(text, ['tab']):
-			appControl.Tab_Opt(text)
 			return
 
 		if isContain(text, ['settings']):
