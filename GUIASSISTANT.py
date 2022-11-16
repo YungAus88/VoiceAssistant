@@ -25,7 +25,7 @@ textColor = 'white'
 AITaskStatusLblBG = '#203647'
 
 KCS_IMG = 1 # 0 是 light, 1 是 dark (初始)
-voice_id = 0 # 0 是 female, 1 是 male (初始)
+voice_id = 1 # 0 是 female, 1 是 male (初始)
 ass_volume = 1 # volume (100 為初始)
 ass_voiceRate = 200 # Voice rate (200 為 Normal 初始)
 startup = 0 # 0 啟動, 1 暫停
@@ -64,6 +64,9 @@ try:
 	from PIL import Image, ImageTk # 影像處理套件 (處理和圖片相關的)
 	from time import sleep # 時間模組 (sleep 休眠)
 	from threading import Thread # 多執行序模組平行化
+	
+	# word2vec
+	from gensim.models.keyedvectors import KeyedVectors
 
 except Exception as e: # 異常處理
 	print(e)
@@ -304,6 +307,28 @@ def keyboardInput(e):
 			Thread(target=main, args=(user_input_en,)).start() #Every time you type, it starts a new Thread, Thread can't easily communicate with eachother, so you neeed to store a stage, the listening stage, an Creating a List stage,
 		UserField.delete(0, END)
 
+
+###################################### LOAD WORD2VEC MODEL  #########################################
+
+print("Loading Word2Vec model, please wait.")
+w2v_model = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
+print("Word2Vec loading complete!")
+w2v_vocab = list(w2v_model.index_to_key)
+
+def determineYesNo(sentence):
+   splited = re.split('\W', sentence)
+   splited = list(filter(None, splited))
+   yes_score = 0
+   no_score = 0
+   for word in splited:
+      if word in w2v_vocab:
+         yes_score += w2v_model.similarity('yes', word)
+         no_score += w2v_model.similarity('no', word)
+   print("Similarities: yes: " + str(yes_score) + ", no: " + str(no_score))
+   if yes_score == 0 and no_score == 0:
+      return False
+   return yes_score > no_score
+
 ###################################### TASK/COMMAND HANDLER #########################################
 def isContain(txt, lst):
 	for word in lst:
@@ -345,7 +370,7 @@ def main(text):
 			stage = 0
 			return
 		elif stage == 5: 
-			if isContain(text, ["no","don't"]):
+			if not determineYesNo(text):
 				speak("No Problem "+ownerDesignation, True)
 			else:
 				speak("Ok "+ownerDesignation+", Opening browser...", True)
@@ -389,7 +414,7 @@ def main(text):
 				speak("Ok "+ownerDesignation+", Let's play some online games", True, True)
 				webScrapping.openWebsite('https://www.agame.com/games/mini-games/')
 				return
-			if isContain(text, ["don't", "no", "cancel", "back", "never"]):
+			if not determineYesNo(text):
 				speak("No Problem "+ownerDesignation+", We'll play next time.", True, True)
 			else:
 				speak("Ok "+ownerDesignation+", Let's Play " + text, True, True)

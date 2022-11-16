@@ -99,5 +99,12 @@
 		"Thanks, I think this voice suits you the most",
 		"Thank You So Much",
 		"Ohh, that's good to know"
+	],
+	"okay" : [
+		"okay",
+		"alright",
+		"what's wrong?",
+		"indeed",
+		"yes"
 	]
 }
