@@ -324,7 +324,7 @@ def determineYesNo(sentence):
       if word in w2v_vocab:
          yes_score += w2v_model.similarity('yes', word)
          no_score += w2v_model.similarity('no', word)
-   print("Similarities: yes: " + str(yes_score) + ", no: " + str(no_score))
+   print("Similarities between: yes: " + str(yes_score) + ",and no: " + str(no_score))
    if yes_score == 0 and no_score == 0:
       return False
    return yes_score > no_score
@@ -342,17 +342,31 @@ def main(text):
 		global stage, buffer
 
 		if stage == 1:
-			ToDo.toDoList(text)
+			if not determineYesNo(text):
+				speak("No Problem "+ownerDesignation, True, True)
+				stage = 0
+				return
+			else:
+				ToDo.toDoList(text)
 			speak("Alright, I added to your list", True)
 			stage = 0
 			return
 		elif stage == 2:
-			projectName = text
+			if not determineYesNo(text):
+				speak("No Problem "+ownerDesignation, True, True)
+				stage = 0
+				return
+			else:
+				projectName = text
 			speak(fileHandler.CreateHTMLProject(projectName.capitalize()), True)
 			stage = 0
+			return
 		elif stage == 3:
-			buffer = text
-			speak("Which language to translate ?", True)
+			if not determineYesNo(text):
+				speak("No Problem "+ownerDesignation, True, True)
+			else:
+				buffer = text
+				speak("Which language to translate ?", True)
 			stage = 4
 			return
 		elif stage == 4:
@@ -379,8 +393,11 @@ def main(text):
 			stage = 0
 			return
 		elif stage == 6:
-			buffer = text
-			speak("Ok "+ownerDesignation+", Where you want to go?", True)
+			if not determineYesNo(text):
+				speak("No Problem "+ownerDesignation, True, True)
+			else:
+				buffer = text
+				speak("Ok "+ownerDesignation+", Where you want to go?", True)
 			stage = 7
 			return
 		elif stage == 7:
@@ -395,7 +412,10 @@ def main(text):
 			stage = 0
 			return
 		elif stage == 8:
-			buffer = text
+			if not determineYesNo(text):
+				speak("No Problem "+ownerDesignation, True, True)
+			else:
+				buffer = text
 			speak('What message you want to send ?', True)
 			stage = 9
 			return
@@ -444,7 +464,7 @@ def main(text):
 				# Set Stage to Adding stuff to a list, and then return, let the next Thread handles the adding part
 				stage = 1
 				return
-			if isContain(text, ['show', 'my list']):
+			if isContain(text, ['show', 'check', 'my list']):
 				items = ToDo.showtoDoList()
 				if len(items)==1:
 					speak(items[0], True, True)
